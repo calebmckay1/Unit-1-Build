@@ -1,0 +1,115 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+df_15 = pd.read_csv('https://raw.githubusercontent.com/calebmckay1/Unit-1-Build/master/2015.csv')
+df_16 = pd.read_csv('https://raw.githubusercontent.com/calebmckay1/Unit-1-Build/master/2016.csv')
+df_17 = pd.read_csv('https://raw.githubusercontent.com/calebmckay1/Unit-1-Build/master/2017.csv')
+df_18 = pd.read_csv('https://raw.githubusercontent.com/calebmckay1/Unit-1-Build/master/2018.csv')
+df_19 = pd.read_csv('https://raw.githubusercontent.com/calebmckay1/Unit-1-Build/master/2019.csv')
+
+
+
+# import dataframe
+
+df_15['year'] = 2015
+df_16['year'] = 2016
+df_17['year'] = 2017
+df_18['year'] = 2018
+df_19['year'] = 2019
+
+# added year column
+
+df_16 = df_16.drop(['Upper Confidence Interval', 'Lower Confidence Interval',
+                    'Happiness Rank','Dystopia Residual'], axis=1)
+df_15 = df_15.drop(['Standard Error','Happiness Rank','Dystopia Residual'], axis=1)
+df_17 = df_17.drop(['Whisker.high', 'Whisker.low','Happiness.Rank','Dystopia.Residual'], axis=1)
+df_18 = df_18.drop(['Overall rank'], axis=1)
+df_19 = df_19.drop(['Overall rank'], axis=1)
+
+# drop unimportant columns
+
+df_17 = df_17.rename(columns={'Happiness.Score': 'Happiness Score',
+       'Economy..GDP.per.Capita.':'Economy (GDP per Capita)', 
+       'Health..Life.Expectancy.':'Health (Life Expectancy)',
+       'Trust..Government.Corruption.':'Trust (Government Corruption)'})
+
+# changed column names
+
+df_18 = df_18.rename(columns= {'Country or region': 'Country', 'Score':'Happiness Score',
+       'GDP per capita':'Economy (GDP per Capita)', 'Social support':'Family', 
+       'Healthy life expectancy': 'Health (Life Expectancy)',
+       'Freedom to make life choices': 'Freedom',
+       'Perceptions of corruption': 'Trust (Government Corruption)'})
+
+# changed column names
+
+df_19 = df_19.rename(columns= {'Country or region': 'Country', 'Score':'Happiness Score',
+       'GDP per capita':'Economy (GDP per Capita)', 'Social support':'Family', 
+       'Healthy life expectancy': 'Health (Life Expectancy)',
+       'Freedom to make life choices': 'Freedom',
+       'Perceptions of corruption': 'Trust (Government Corruption)'})
+
+# changed column names
+
+df_17['Region'] = df_16['Region']
+df_18['Region'] = df_16['Region']
+df_19['Region'] = df_16['Region']
+
+world_happiness = pd.concat([df_15, df_16, df_17, df_18, df_19])
+
+world_happiness = world_happiness.rename(columns= {'Happiness Score':'Score',
+       'Economy (GDP per Capita)':'GDP', 
+       'Health (Life Expectancy)':'Health',
+       'Trust (Government Corruption)':'Trust'})
+
+world_happiness_corr = world_happiness.corr()
+
+world_happiness_corr.style.background_gradient(cmap='coolwarm')
+world_happiness_corr.style.background_gradient(cmap='coolwarm').set_precision(1)
+
+world_happiness_table = pd.pivot_table(world_happiness, values='Score', 
+                     index=['Region'], 
+                     columns='year')
+
+import seaborn as sns
+sns.heatmap(world_happiness_table, cmap='plasma');
+
+plt.figure(figsize=(14,5))
+plt.plot(df_19['Happiness Score'],df_19['Economy (GDP per Capita)'], label= 'GDP', color= 'green')
+plt.plot(df_19['Happiness Score'],df_19['Family'], label= 'Family Support', color= 'blue')
+plt.plot(df_19['Happiness Score'],df_19['Health (Life Expectancy)'], label= 'Health', color= 'black')
+plt.plot(df_19['Happiness Score'],df_19['Freedom'], label= 'Freedom', color= 'purple')
+plt.plot(df_19['Happiness Score'],df_19['Trust (Government Corruption)'], label= 'Trust in Government', color= 'orange')
+plt.plot(df_19['Happiness Score'],df_19['Generosity'], label= 'Generosity', color= 'red')
+
+plt.xlabel('Happiness Score (1-10)')
+plt.ylabel('Contributing Factors To Happiness')
+plt.title('World Happiness in 2019')
+
+plt.grid()
+plt.legend()
+plt.show()
+
+# !pip install chart_studio
+# import chart_studio.plotly as py
+# import plotly.graph_objs as go
+
+import plotly
+import plotly.graph_objs as go
+from plotly.offline import *
+
+global_happiness = dict(type = 'choropleth',
+             locations = world_happiness['Country'],
+             locationmode = 'country names',
+             z = world_happiness['Score'],
+             text = world_happiness['Country'],
+             colorscale = 'plasma',
+             autocolorscale=False,
+             colorbar= {'title':'Happiness'})
+layout = dict(title = 'Average Happiness on 1-10 Scale',
+              geo = dict(showframe = False, 
+                         projection = {'type':'equirectangular'}))
+choromap1 = go.Figure(data= [global_happiness], layout = layout)
+iplot(choromap1)
+
